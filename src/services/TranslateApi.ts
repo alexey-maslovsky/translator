@@ -9,10 +9,15 @@ interface DetectResponseData {
   language: string
 }
 
+interface ILanguage {
+  code: string;
+  name: string;
+}
+
 export default class TranslateApi {
-  async translate(text: string, language: string): Promise<string> {
+  async translate(text: string, languageFrom: string, languageTo: string): Promise<string> {
     const response = await fetch(
-      `https://libretranslate.de/translate?q=${text}&source=${language}&target=en`,
+      `https://libretranslate.de/translate?q=${text}&source=${languageFrom}&target=${languageTo}`,
       { method: 'POST' },
     );
 
@@ -32,5 +37,13 @@ export default class TranslateApi {
     const mostLikelyLanguage = maxBy(languages, ({ confidence }) => confidence);
 
     return mostLikelyLanguage?.language || null;
+  }
+
+  async getLanguages() {
+    const response = await fetch('https://libretranslate.de/languages');
+
+    const data: ILanguage[] = await response.json();
+
+    return data;
   }
 }
