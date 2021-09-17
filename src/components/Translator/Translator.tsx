@@ -1,29 +1,32 @@
 import { useState } from 'react';
 import { FC } from 'react';
+import TranslateApi from '../../services/TranslateApi';
 import Button from '../Button';
 import Textarea from '../Textarea/Textarea';
-
-interface ResponseData {
-  translatedText: string;
-}
 
 const Translator: FC = () => {
   const [fromText, setFromText] = useState('');
   const [toText, setToText] = useState('');
+  const [language, setLanguage] = useState<string | null>(null);
 
   const handleTranslate = async () => {
-    const response = await fetch(
-      `https://libretranslate.de/translate?q=${fromText}&source=ru&target=en`,
-      { method: 'POST' },
-    );
+    const api = new TranslateApi();
 
-    const data: ResponseData = await response.json();
+    const detectedLanguage = await api.detect(fromText);
+    setLanguage(detectedLanguage);
 
-    setToText(data.translatedText);
+    if (!detectedLanguage) {
+      return;
+    }
+
+    const translatedText = await api.translate(fromText, detectedLanguage);
+
+    setToText(translatedText);
   };
 
   return (
     <div>
+      detected language: {language || 'not detected'}
       <Textarea
         value={fromText}
         onChange={(e) => setFromText(e.target.value)}
